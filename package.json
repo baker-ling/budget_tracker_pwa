@@ -4,9 +4,12 @@
   "description": "A budget tracker with offline mode",
   "main": "server.js",
   "scripts": {
+    "prestart": "webpack --mode production",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "lite-server": "lite-server"
+    "lite-server": "lite-server",
+    "build": "webpack --mode production",
+    "wpwatch": "webpack watch"
   },
   "repository": {
     "type": "git",
@@ -19,7 +22,9 @@
   },
   "homepage": "https://github.com/coding-boot-camp/unit18hw#readme",
   "dependencies": {
+    "chart.js": "^3.6.2",
     "compression": "^1.7.4",
+    "dexie": "^3.2.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "lite-server": "^2.5.3",
@@ -29,5 +34,10 @@
   "keywords": [
     "budget",
     "pwa"
-  ]
+  ],
+  "devDependencies": {
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-pwa-manifest": "^4.3.0"
+  }
 }
