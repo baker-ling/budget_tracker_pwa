@@ -18,9 +18,10 @@ const config = {
       theme_color: "#ffffff",
       "theme-color": "#ffffff",
       start_url: "/",
+      publicPath: "/dist/",
       icons: [
         {
-          src: path.resolve("public/src/icons/icon-512x512.png"),
+          src: path.resolve("./public/src/icons/icon-512x512.png"),
           sizes: [96, 128, 192, 256, 384, 512],
           destination: path.join("assets", "icons")
         }

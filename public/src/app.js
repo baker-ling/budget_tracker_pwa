@@ -17,10 +17,14 @@ async function init() {
   
   document.querySelector("#sub-btn").onclick = function() {
     sendTransaction(false);
-  };  
+  };
+
+  document.addEventListener('online', syncQueuedTransactions);
 
   // todo: modify code below to initialize state from indexeddb if unable to connect to server
   try {
+    await syncQueuedTransactions();
+
     const getResponse = await fetch("/api/transaction");
     
     // save db data on global variable
@@ -43,9 +47,7 @@ async function init() {
   }
 }
 
-
-
-function sendTransaction(isAdding) {
+async function sendTransaction(isAdding) {
   let nameEl = document.querySelector("#t-name");
   let amountEl = document.querySelector("#t-amount");
   let errorEl = document.querySelector(".form .error");
@@ -71,20 +73,52 @@ function sendTransaction(isAdding) {
     transaction.value *= -1;
   }
 
-  // add to beginning of current array of data
-  transactions.unshift(transaction);
+  // add transaction to local and remote stores
+  await registerTransaction(transaction);
 
   // re-run logic to populate ui with new record
   populateChart(transactions);
   populateTable(transactions);
   populateTotal(transactions);
-
-  // todo: queue transaction for sync to server
-
-  // todo: sync transactions
   
+  // clear form
+  nameEl.value = "";
+  amountEl.value = "";
+
   // also send to server
-  fetch("/api/transaction", {
+  syncQueuedTransactions()
+  .catch(() => {
+    console.log('Transaction data sync failed. Transactions will be kept in local DB.')
+  });
+}
+
+/**
+ * Adds a transaction to the list in memory and storage.
+ */
+async function registerTransaction(transaction) {
+  // add to beginning of current array of data
+  transactions.unshift(transaction);
+  
+  // add to local transactions indexeddb
+  await db.transactions.put(transaction)
+  
+  // queue for syncing with remote db
+  return db.pendingSync.put(transaction);
+}
+
+/**
+ * Syncs all the transactions stored locally but not on the remote server
+ */
+async function syncQueuedTransactions() {
+  const unsyncedTransactions = await db.pendingSync.toArray();
+  return Promise.all(unsyncedTransactions.map(transaction => syncTransaction(transaction)));
+}
+
+/**
+ * Syncs a transaction queued up locally and deletes it from the local queue upon success.
+ */
+async function syncTransaction(transaction) {
+  return fetch("/api/transaction", {
     method: "POST",
     body: JSON.stringify(transaction),
     headers: {
@@ -94,29 +128,10 @@ function sendTransaction(isAdding) {
   })
   .then(response => {    
     return response.json();
-  })
-  .then(data => {
-    if (data.errors) {
-      errorEl.textContent = "Missing Information";
-    }
-    else {
-      // clear form
-      nameEl.value = "";
-      amountEl.value = "";
-    }
-  })
-  .catch(err => {
-    // fetch failed, so save in indexed db
-    saveRecord(transaction);
-
-    // clear form
-    nameEl.value = "";
-    amountEl.value = "";
+  }).then(data => {
+    if (data.errors) return data;
+    return db.pendingSync.where({date: transaction.date}).delete();
   });
-}
-
-function saveRecord(transaction) {
-  // todo
 }
 
 init();
