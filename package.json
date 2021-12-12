@@ -29,15 +29,13 @@
     "express": "^4.17.1",
     "lite-server": "^2.5.3",
     "mongoose": "^5.5.15",
-    "morgan": "^1.9.1"
+    "morgan": "^1.9.1",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-pwa-manifest": "^4.3.0"
   },
   "keywords": [
     "budget",
     "pwa"
-  ],
-  "devDependencies": {
-    "webpack": "^5.65.0",
-    "webpack-cli": "^4.9.1",
-    "webpack-pwa-manifest": "^4.3.0"
-  }
+  ]
 }
